@@ -8,26 +8,22 @@
 import Foundation
 import UIKit
 
-
-import Foundation
-import UIKit
-
-protocol CurrencyRateService {
+public protocol CurrencyRateService {
     func getRates(for base: Currency) async throws -> [Currency: Double]
     func startAutoRefresh()
     func stopAutoRefresh()
 }
 
-final class CurrencyRateServiceImpl: CurrencyRateService {
+public final class CurrencyRateServiceImpl: CurrencyRateService {
     private let networkService: NetworkService
     private let storage = CurrencyRateStorage()
 
-    private let freshnessInterval: TimeInterval = 30 * 60 // 30 минут
+    private let freshnessInterval: TimeInterval = 30 * 60
     private let lastUpdatedKeyPrefix = "last_updated_"
 
     private var timer: Timer?
 
-    init(networkService: NetworkService) {
+    public init(networkService: NetworkService) {
         self.networkService = networkService
 
         NotificationCenter.default.addObserver(
@@ -45,7 +41,7 @@ final class CurrencyRateServiceImpl: CurrencyRateService {
 
     // MARK: - Public API
 
-    func getRates(for base: Currency) async throws -> [Currency: Double] {
+    public func getRates(for base: Currency) async throws -> [Currency: Double] {
         if !isDataFresh(for: base) {
             try await refreshRates(for: base)
         }
@@ -63,7 +59,7 @@ final class CurrencyRateServiceImpl: CurrencyRateService {
         return fallback
     }
 
-    func startAutoRefresh() {
+    public func startAutoRefresh() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: freshnessInterval, repeats: true) { [weak self] _ in
             Task {
@@ -72,7 +68,7 @@ final class CurrencyRateServiceImpl: CurrencyRateService {
         }
     }
 
-    func stopAutoRefresh() {
+    public func stopAutoRefresh() {
         timer?.invalidate()
         timer = nil
     }

@@ -6,12 +6,17 @@ public protocol NetworkService {
 }
 
 public actor NetworkServiceImp: NetworkService {
+
     private let isDebugLoggingEnabled = true
     private let session: URLSession = .shared
     private let maxRetries = 3
 
     public func fetch<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
         try await fetch(endpoint, retryCount: 0)
+    }
+    
+    public init() {
+        
     }
 
     public func fetch(_ endpoint: Endpoint) async throws {

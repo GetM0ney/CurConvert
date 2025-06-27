@@ -1,17 +1,23 @@
 import SwiftUI
+import ConvCore
+import Swinject
 
 public struct ContentView: View {
-    public init() {}
+    @StateObject private var viewModel: CurrencyRatesViewModel
+
+        init(baseCurrency: Currency, container: Resolver) {
+            let service = container.resolve(CurrencyRateService.self)!
+            let converter = container.resolve(ICurrencyConverterManager.self)!
+            _viewModel = StateObject(wrappedValue: CurrencyRatesViewModel(
+                baseCurrency: baseCurrency,
+                currencyRateService: service,
+                converter: converter
+            ))
+        }
 
     public var body: some View {
-        Text("Hello, World!")
-            .padding()
-    }
-}
-
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+        VStack {
+            Text("asdasddasdas")
+        }
     }
 }

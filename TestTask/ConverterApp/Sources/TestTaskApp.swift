@@ -1,10 +1,20 @@
 import SwiftUI
+import Swinject
 
 @main
-struct TestTaskApp: App {
+struct MyApp: App {
+    private let container: Resolver
+    private let viewFactory: ViewFactory
+
+    init() {
+        let appContainer = AppDIContainer.shared
+        self.container = appContainer.container
+        self.viewFactory = ViewFactory(container: container)
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            viewFactory.makeCurrencyRatesView(baseCurrency: .usd)
         }
     }
 }

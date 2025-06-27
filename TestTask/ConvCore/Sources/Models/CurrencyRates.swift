@@ -10,7 +10,7 @@ import Foundation
 
 import Foundation
 
-enum Currency: String, CaseIterable {
+public enum Currency: String, CaseIterable {
     case rub = "RUB"
     case usd = "USD"
     case eur = "EUR"
@@ -19,7 +19,7 @@ enum Currency: String, CaseIterable {
     case cny = "CNY"
 }
 
-struct CurrencyRates: Codable {
+public struct CurrencyRates: Codable {
     private var rates: [Currency: Double]
     
     subscript(currency: Currency) -> Double? {
@@ -27,7 +27,7 @@ struct CurrencyRates: Codable {
     }
 
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: DynamicCodingKeys.self)
         var tempRates: [Currency: Double] = [:]
         
@@ -41,7 +41,7 @@ struct CurrencyRates: Codable {
         self.rates = tempRates
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: DynamicCodingKeys.self)
         for (currency, value) in rates {
             let key = DynamicCodingKeys(stringValue: currency.rawValue)
