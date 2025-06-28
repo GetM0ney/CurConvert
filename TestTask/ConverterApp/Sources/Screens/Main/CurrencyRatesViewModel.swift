@@ -14,13 +14,16 @@ import ConvCore
 final class CurrencyRatesViewModel: ObservableObject {
     @Published var baseCurrency: Currency {
         didSet {
+            saveBaseCurrency()
             convertedResult = nil
             Task { await loadRates() }
+            
         }
     }
     
     @Published var targetCurrency: Currency {
         didSet {
+            saveTargerCurrency()
             convertedResult = nil
         }
     }
@@ -45,11 +48,13 @@ final class CurrencyRatesViewModel: ObservableObject {
     ) {
         self.baseCurrency = baseCurrency
         self.targetCurrency = Currency.allCases.first(where: { $0 != baseCurrency }) ?? baseCurrency
+        
         self.currencyRateService = currencyRateService
         self.historyManager = historyManager
         self.converter = converter
         
         setupTimer()
+        setCurrentCurrencies()
         Task { await loadRates() }
     }
     
@@ -93,6 +98,23 @@ final class CurrencyRatesViewModel: ObservableObject {
         currencyRateService.startAutoRefresh()
     }
     
+    private func saveBaseCurrency() {
+        UserDefaults.standard.set(baseCurrency.rawValue, forKey: "baseCurrency")
+    }
+    
+    private func saveTargerCurrency() {
+        UserDefaults.standard.set(targetCurrency.rawValue, forKey: "targetCurrency")
+    }
+    
+    private func setCurrentCurrencies() {
+        if let baseCurrency = UserDefaults.standard.string(forKey: "baseCurrency") {
+            self.baseCurrency = Currency(rawValue: baseCurrency) ?? .usd
+        }
+        
+        if let targetCurrency = UserDefaults.standard.string(forKey: "targetCurrency") {
+            self.targetCurrency = Currency(rawValue: targetCurrency) ?? .eur
+        }
+    }
     private func setupTimer() {
         Timer
             .publish(every: 30 * 60, on: .main, in: .common)

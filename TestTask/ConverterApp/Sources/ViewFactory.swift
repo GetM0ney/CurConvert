@@ -32,7 +32,7 @@ final class ViewFactory {
     @MainActor
     func makeConversionHistoryView() -> some View {
         let manager = container.resolve((any IConversionHistoryManager).self)!
-        let viewModel = ConversionHistoryViewModel(historyManager: manager as! PersistentConversionHistoryManager)
+        let viewModel = ConversionHistoryViewModel(historyManager: manager)
         return ConversionHistoryView(viewModel: viewModel)
     }
 }

@@ -171,22 +171,18 @@ extension NetworkServiceImp {
         guard isDebugLoggingEnabled else { return }
 
         var components = ["curl -v"]
-
-        // Method
+       
         components.append("-X \(request.httpMethod ?? "GET")")
 
-        // Headers
         request.allHTTPHeaderFields?.forEach { key, value in
             components.append("-H '\(key): \(value)'")
         }
 
-        // Body
         if let body = request.httpBody,
            let bodyString = String(data: body, encoding: .utf8) {
             components.append("-d '\(bodyString)'")
         }
 
-        // URL
         components.append("'\(request.url?.absoluteString ?? "")'")
 
         print("🚀 Request:")
