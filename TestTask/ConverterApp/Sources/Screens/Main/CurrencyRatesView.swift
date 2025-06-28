@@ -16,14 +16,18 @@ struct ErrorMessage: Identifiable {
 
 struct CurrencyRatesView: View {
     @StateObject private var viewModel: CurrencyRatesViewModel
+    
+    @EnvironmentObject var viewFactoryWrapper: ViewFactoryWrapper
 
     init(baseCurrency: Currency, container: Resolver) {
         let service = container.resolve(CurrencyRateService.self)!
         let converter = container.resolve(ICurrencyConverterManager.self)!
+        let history = container.resolve((any IConversionHistoryManager).self)!
         _viewModel = StateObject(wrappedValue: CurrencyRatesViewModel(
             baseCurrency: baseCurrency,
             currencyRateService: service,
-            converter: converter
+            converter: converter,
+            historyManager: history
         ))
     }
 
@@ -88,7 +92,7 @@ struct CurrencyRatesView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        
+                        viewModel.isShownHistory = true
                     }) {
                         Image(systemName: "clock")
                     }
@@ -106,6 +110,11 @@ struct CurrencyRatesView: View {
                     message: Text(error.message),
                     dismissButton: .default(Text("OK"))
                 )
+            }
+            .sheet(isPresented: $viewModel.isShownHistory) {
+                NavigationView {
+                    viewFactoryWrapper.factory.makeConversionHistoryView()
+                }
             }
         }
     }

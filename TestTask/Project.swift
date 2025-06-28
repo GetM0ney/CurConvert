@@ -17,7 +17,16 @@ private extension Target {
             product: .app,
             bundleId: "\(Constants.bundleIdPrefix).converter",
             deploymentTargets: Constants.iosDeploymentTarget,
-            infoPlist: .default,
+            infoPlist: .extendingDefault(with: [
+                "UILaunchScreen": [
+                    "UIColorName": "",
+                    "UIImageName": "",
+                ],
+                "NSAppTransportSecurity": [
+                    "NSAllowsArbitraryLoads": true,
+                ],
+                "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
+            ]),
             sources: ["ConverterApp/Sources/**"],
             resources: ["ConverterApp/Resources/**"],
             dependencies: [

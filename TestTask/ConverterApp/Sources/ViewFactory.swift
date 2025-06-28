@@ -10,6 +10,13 @@ import ConvCore
 import SwiftUI
 
 
+final class ViewFactoryWrapper: ObservableObject {
+    let factory: ViewFactory
+    init(factory: ViewFactory) {
+        self.factory = factory
+    }
+}
+
 final class ViewFactory {
     private let container: Resolver
 
@@ -20,5 +27,12 @@ final class ViewFactory {
     func makeCurrencyRatesView(baseCurrency: Currency) -> some View {
         CurrencyRatesView(baseCurrency: .usd, container: container)
             .ignoresSafeArea()
+    }
+    
+    @MainActor
+    func makeConversionHistoryView() -> some View {
+        let manager = container.resolve((any IConversionHistoryManager).self)!
+        let viewModel = ConversionHistoryViewModel(historyManager: manager as! PersistentConversionHistoryManager)
+        return ConversionHistoryView(viewModel: viewModel)
     }
 }

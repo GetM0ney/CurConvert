@@ -18,7 +18,7 @@ final class CurrencyRatesViewModel: ObservableObject {
             Task { await loadRates() }
         }
     }
-
+    
     @Published var targetCurrency: Currency {
         didSet {
             convertedResult = nil
@@ -28,53 +28,71 @@ final class CurrencyRatesViewModel: ObservableObject {
     @Published var convertedResult: Double?
     @Published var rates: [Currency: Double] = [:]
     @Published var errorMessage: ErrorMessage?
-
+    
+    @Published var isShownHistory: Bool = false
+    
     private let currencyRateService: CurrencyRateService
     private let converter: ICurrencyConverterManager
+    private let historyManager: any IConversionHistoryManager
+    
     private var cancellables = Set<AnyCancellable>()
-
+    
     init(
         baseCurrency: Currency,
         currencyRateService: CurrencyRateService,
-        converter: ICurrencyConverterManager
+        converter: ICurrencyConverterManager,
+        historyManager: any IConversionHistoryManager
     ) {
         self.baseCurrency = baseCurrency
         self.targetCurrency = Currency.allCases.first(where: { $0 != baseCurrency }) ?? baseCurrency
         self.currencyRateService = currencyRateService
+        self.historyManager = historyManager
         self.converter = converter
-
+        
         setupTimer()
         Task { await loadRates() }
     }
-
+    
     func convert() {
+        guard let amount = Double(amountString) else {
+            errorMessage = ErrorMessage(message: "Некорректная сумма")
+            return
+        }
+        
         Task {
-            guard let amount = Double(amountString) else {
-                errorMessage = ErrorMessage(message: "Некорректная сумма")
-                return
-            }
-
             do {
-                let result = try await converter.convert(
-                    amount: amount,
-                    from: baseCurrency,
-                    to: targetCurrency
-                )
-                self.convertedResult = result.convertedAmount
+                let result = try await converter.convert(amount: amount, from: baseCurrency, to: targetCurrency)
+                await MainActor.run {
+                    self.convertedResult = result.convertedAmount
+                    self.errorMessage = nil
+                    
+                    let historyItem = ConversionHistoryItem(
+                        date: Date(),
+                        from: baseCurrency,
+                        to: targetCurrency,
+                        amount: amount,
+                        result: result.convertedAmount,
+                        rate: result.rate
+                    )
+                    
+                    self.historyManager.add(historyItem)
+                }
             } catch {
-                errorMessage = ErrorMessage(message: error.localizedDescription)
+                await MainActor.run {
+                    self.errorMessage = ErrorMessage(message: error.localizedDescription)
+                }
             }
         }
     }
-
+    
     func reloadManually() async {
         await loadRates()
     }
-
+    
     func startAutoRefresh() {
         currencyRateService.startAutoRefresh()
     }
-
+    
     private func setupTimer() {
         Timer
             .publish(every: 30 * 60, on: .main, in: .common)
@@ -86,7 +104,7 @@ final class CurrencyRatesViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-
+    
     private func loadRates() async {
         do {
             let fetchedRates = try await currencyRateService.getRates(for: baseCurrency)

@@ -23,5 +23,13 @@ public final class CoreAssembly: Assembly {
         container.register(ICurrencyConverterManager.self) { r in
             CurrencyConverterManagerImpl(rateService: r.resolve(CurrencyRateService.self)!)
         }.inObjectScope(.container)
+        
+//        container.register((any IConversionHistoryManager).self) { _ in
+//            ConversionHistoryManager()
+//        }.inObjectScope(.container)
+        
+        container.register((any IConversionHistoryManager).self) { _ in
+            PersistentConversionHistoryManager()
+        }.inObjectScope(.container)
     }
 }
